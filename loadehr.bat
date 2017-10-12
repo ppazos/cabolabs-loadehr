@@ -1,0 +1,1 @@
+java -cp "./lib/*;%GROOVY_HOME%/embeddable/groovy-all-2.4.7.jar;%GROOVY_HOME%/lib/*;cabolabs-loadehr.jar" com.cabolabs.loadehr.Main %1 %2 %3 %4 %5 %6
