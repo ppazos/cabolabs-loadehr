@@ -13,7 +13,7 @@ class LoadEhr {
    Random random = new Random()
    
    List composers = []
-   List generos = [[name: 'Masculino', code:'M'], [name: 'Femenino', code:'F']]
+   List generos = [[name: 'Masculino', code:'at0003'], [name: 'Femenino', code:'at0004']]
    
    LoadEhr (EhrServerAsyncClient ehrserver)
    {
@@ -59,46 +59,41 @@ class LoadEhr {
       
       def templates = ehrserver.getTemplates()
       def template = templates.result.find { it.templateId == 'datos_demograficos.es.v1' }
-      /*
+      
       if (!template)
       {
          println "Template datos_demograficos.es.v1 is not loaded in the EHRServer"
          return
       }
-      */
       
-      def ehrs = ehrserver.getEhrs()
+      
       String compo = loadTaggedDemographicInstance()
       String final_compo
 
-      /*
-      final_compo = setTagsDemographicInstane(compo)
-      
-      println final_compo
-      
-      final_compo = setTagsDemographicInstane(compo)
-      
-      println final_compo
-      */
-      
-      
       def res
-      def ehr = ehrs.result.ehrs[0]
+      def offset = 0
+      def ehrs = ehrserver.getEhrs(50, offset)
       
-      //ehrs.result.ehrs.each { ehr ->
-      
-         // pick composer / committer
-         def composerData = this.composers[ random.nextInt(this.composers.size) ]
-      
-         final_compo = setTagsDemographicInstane(compo, composerData)
+      while (ehrs.result.ehrs.size() > 0) // pagination loop
+      {
+         ehrs.result.ehrs.each { ehr ->
          
-         println final_compo
+            // pick composer / committer
+            def composerData = this.composers[ random.nextInt(this.composers.size) ]
          
-         res = ehrserver.commit(ehr.uid, final_compo, (composerData.first_name+" "+composerData.last_name), 'CABOLABS-LOADEHR')
+            final_compo = setTagsDemographicInstane(compo, composerData)
+            
+            //println final_compo
+            
+            res = ehrserver.commit(ehr.uid, final_compo, (composerData.first_name+" "+composerData.last_name), 'CABOLABS-LOADEHR')
+            
+            //println ">>> " + res
+            println res.message
+         }
          
-         println ">>> " + res
-         println res.message
-      //}
+         offset = ehrs.result.pagination.nextOffset
+         ehrs = ehrserver.getEhrs(50, offset) // get next 50
+      }
    }
    
    def loadTaggedDemographicInstance()
