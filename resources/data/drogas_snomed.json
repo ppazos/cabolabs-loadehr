@@ -1,0 +1,15 @@
+[
+{"id": 1,"drug":"glicerina",    "uid":"625c4c58-4bf4-4001-b7e3-af1c608274df","conceptid":"80582002"},
+{"id": 3,"drug":"igoxina",      "uid":"43bd016a-855d-412c-855e-dbdf835a7aa1","conceptid":"796001"},
+{"id": 4,"drug":"oximetazolina","uid":"ec03d6cc-4b50-472d-957d-0fce77ac8c04","conceptid":"387158001"},
+{"id": 6,"drug":"sertralina",   "uid":"2b990a96-5757-4b30-9487-aaea561162fb","conceptid":"372594008"},
+{"id": 7,"drug":"fluorouracilo","uid":"ba690146-078d-4b07-aaf6-644cb26b6ddd","conceptid":"3127006"},
+{"id":10,"drug":"acebutolol",   "uid":"37678ebc-6ff2-46d3-a0fe-c6ab66b07080","conceptid":"372815001"},
+{"id":17,"drug":"ácido acetilsalicílico","uid":"34bd717d-ab72-49d6-9018-606513820996","conceptid":"7947003"},
+{"id":21,"drug":"amoxicilina",  "uid":"cddcc6bc-78fe-4391-b7b5-e61a129d3710","conceptid":"27658006"},
+{"id":32,"drug":"ribavirina",   "uid":"414c3bc2-0c27-4329-a430-41caa949de1d","conceptid":"387188005"},
+{"id":33,"drug":"lamotrigina",  "uid":"5145ec82-5251-423a-b5ba-cab0ca0ceeda","conceptid":"387562000"},
+{"id":35,"drug":"lansoprazol",  "uid":"d470bd72-d58e-4c68-b0e3-d9c2a80b6d59","conceptid":"386888004"},
+{"id":41,"drug":"gabapentina",  "uid":"1fda5ea3-eb80-488a-8931-a625abbba6c7","conceptid":"386845007"},
+{"id":51,"drug":"risperidona",  "uid":"39e9333d-dd0f-4343-99da-aa4fefb8f4ec","conceptid":"386840002"}
+]

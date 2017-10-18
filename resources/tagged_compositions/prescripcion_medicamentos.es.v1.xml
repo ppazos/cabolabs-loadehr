@@ -99,40 +99,8 @@
           <code_string>UTF-8</code_string>
         </encoding>
         <subject xsi:type="PARTY_SELF" />
-        <protocol archetype_node_id="at0031" xsi:type="ITEM_TREE">
-          <name>
-            <value>Tree</value>
-          </name>
-          <items archetype_node_id="at0038" xsi:type="ELEMENT">
-            <name>
-              <value>Indicación para uso autorizado</value>
-            </name>
-            <value xsi:type="DV_TEXT">
-              <value>[[Indicación_para_uso_autorizado:::STRING]]</value>
-            </value>
-          </items>
-          <items archetype_node_id="at0032" xsi:type="ELEMENT">
-            <name>
-              <value>Identificador para la instrucción del medicamento</value>
-            </name>
-            <value xsi:type="DV_IDENTIFIER">
-              <issuer>[[Identificador_para_la_instrucción_del_medicamento:::DV_IDENTIFIER_ISSUER]]</issuer>
-              <assigner>[[Identificador_para_la_instrucción_del_medicamento:::DV_IDENTIFIER_ASSIGNER]]</assigner>
-              <id>[[Identificador_para_la_instrucción_del_medicamento:::DV_IDENTIFIER_ID]]</id>
-              <type>[[Identificador_para_la_instrucción_del_medicamento:::DV_IDENTIFIER_TYPE]]</type>
-            </value>
-          </items>
-          <items archetype_node_id="at0042" xsi:type="ELEMENT">
-            <name>
-              <value>Beneficio de concesión</value>
-            </name>
-            <value xsi:type="DV_TEXT">
-              <value>[[Beneficio_de_concesión:::STRING]]</value>
-            </value>
-          </items>
-        </protocol>
         <narrative>
-          <value>[[Orden_de_medicamentos:::INSTRUCTION_NARRATIVE_VALUE</value>
+          <value>[[orden_narativa:::INSTRUCTION_NARRATIVE_VALUE]]</value>
         </narrative>
         <activities archetype_node_id="at0001">
           <name>
@@ -146,8 +114,19 @@
               <name>
                 <value>Medicamento</value>
               </name>
+              <!-- TODO: we need to support code text option on any text node.
               <value xsi:type="DV_TEXT">
                 <value>[[Medicamento:::STRING]]</value>
+              </value>
+              -->
+              <value xsi:type="DV_CODED_TEXT">
+                <value>[[Medicamento_nombre:::STRING]]</value>
+                <defining_code>
+                  <terminology_id>
+                    <value>SNOMED-CT</value>
+                  </terminology_id>
+                  <code_string>[[Medicamento_codigo:::STRING]]</code_string>
+                </defining_code>
               </value>
             </items>
             <items archetype_node_id="at0009" xsi:type="ELEMENT">
@@ -157,7 +136,7 @@
               <value xsi:type="DV_TEXT">
                 <value>[[Indicaciones_generales:::STRING]]</value>
               </value>
-            </items><!-- SLOT NOT PROCESSED -->
+            </items>
             <items archetype_node_id="at0005" xsi:type="ELEMENT">
               <name>
                 <value>Dosis</value>
@@ -165,7 +144,7 @@
               <value xsi:type="DV_TEXT">
                 <value>[[Dosis:::STRING]]</value>
               </value>
-            </items><!-- SLOT NOT PROCESSED -->
+            </items>
             <items archetype_node_id="at0008" xsi:type="ELEMENT">
               <name>
                 <value>Temporización</value>
@@ -186,36 +165,12 @@
                   <value>[[Cuando_sea_necesario:::BOOLEAN]]</value>
                 </value>
               </items>
-              <items archetype_node_id="at0011" xsi:type="ELEMENT">
-                <name>
-                  <value>Criterio de comienzo</value>
-                </name>
-                <value xsi:type="DV_TEXT">
-                  <value>[[Criterio_de_comienzo:::STRING]]</value>
-                </value>
-              </items>
               <items archetype_node_id="at0012" xsi:type="ELEMENT">
                 <name>
                   <value>Fecha de comienzo</value>
                 </name>
                 <value xsi:type="DV_DATE_TIME">
                   <value>[[Fecha_de_comienzo:::DATETIME]]</value>
-                </value>
-              </items>
-              <items archetype_node_id="at0016" xsi:type="ELEMENT">
-                <name>
-                  <value>Criterio de finalización</value>
-                </name>
-                <value xsi:type="DV_TEXT">
-                  <value>[[Criterio_de_finalización:::STRING]]</value>
-                </value>
-              </items>
-              <items archetype_node_id="at0013" xsi:type="ELEMENT">
-                <name>
-                  <value>Fecha de parada</value>
-                </name>
-                <value xsi:type="DV_DATE_TIME">
-                  <value>[[Fecha_de_parada:::DATETIME]]</value>
                 </value>
               </items>
               <items archetype_node_id="at0014" xsi:type="ELEMENT">
@@ -226,14 +181,6 @@
                   <value>[[Duración_del_tratamiento:::DV_DURATION_VALUE]]</value>
                 </value>
               </items>
-              <items archetype_node_id="at0047" xsi:type="ELEMENT">
-                <name>
-                  <value>Duración del tratamiento previo</value>
-                </name>
-                <value xsi:type="DV_DURATION">
-                  <value>[[Duración_del_tratamiento_previo:::DV_DURATION_VALUE]]</value>
-                </value>
-              </items>
               <items archetype_node_id="at0015" xsi:type="ELEMENT">
                 <name>
                   <value>Número de administraciones</value>
@@ -242,43 +189,11 @@
                   <magnitude>[[Número_de_administraciones:::INTEGER]]</magnitude>
                 </value>
               </items>
-              <items archetype_node_id="at0017" xsi:type="ELEMENT">
-                <name>
-                  <value>Tratamiento prolongado</value>
-                </name>
-                <value xsi:type="DV_BOOLEAN">
-                  <value>[[Tratamiento_prolongado:::BOOLEAN]]</value>
-                </value>
-              </items><!-- SLOT NOT PROCESSED -->
-            </items>
-            <items archetype_node_id="at0044" xsi:type="ELEMENT">
-              <name>
-                <value>Instrucciones adicionales</value>
-              </name>
-              <value xsi:type="DV_TEXT">
-                <value>[[Instrucciones_adicionales:::STRING]]</value>
-              </value>
-            </items><!-- SLOT NOT PROCESSED -->
-            <items archetype_node_id="at0018" xsi:type="ELEMENT">
-              <name>
-                <value>Indicaciones clínicas</value>
-              </name>
-              <value xsi:type="DV_TEXT">
-                <value>[[Indicaciones_clínicas:::STRING]]</value>
-              </value>
-            </items><!-- SLOT NOT PROCESSED -->
-            <items archetype_node_id="at0035" xsi:type="ELEMENT">
-              <name>
-                <value>Comentario</value>
-              </name>
-              <value xsi:type="DV_TEXT">
-                <value>[[Comentario:::STRING]]</value>
-              </value>
             </items>
             <items archetype_node_id="at0023" xsi:type="CLUSTER">
               <name>
                 <value>Dispensación</value>
-              </name><!-- SLOT NOT PROCESSED -->
+              </name>
               <items archetype_node_id="at0025" xsi:type="ELEMENT">
                 <name>
                   <value>Número de repeticiones</value>
@@ -323,7 +238,7 @@
     </content>
   </data>
   <lifecycle_state>
-    <value>completed</value>
+    <value>complete</value>
     <defining_code>
       <terminology_id>
         <value>openehr</value>

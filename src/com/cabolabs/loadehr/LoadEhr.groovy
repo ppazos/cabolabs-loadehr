@@ -20,11 +20,15 @@ class LoadEhr {
    List composers = []
    List diagnosis = []
    List texts     = []
-   List generos = [[name: 'Masculino', code:'at0003'], [name: 'Femenino', code:'at0004']]
+   List drugs     = []
+   List generos = [
+      [name: 'Masculino', code:'at0003'],
+      [name: 'Femenino',  code:'at0004']
+   ]
    List severities = [
-      [name: 'Leve',     code:'at0047'], 
-      [name: 'Moderada', code:'at0048'],
-      [name: 'Severo',   code:'at0049']
+      [name: 'Leve',      code:'at0047'], 
+      [name: 'Moderada',  code:'at0048'],
+      [name: 'Severo',    code:'at0049']
    ]
    
    LoadEhr (EhrServerAsyncClient ehrserver)
@@ -34,6 +38,7 @@ class LoadEhr {
       loadComposers()
       loadDiagnosis()
       loadTexts()
+      loadDrugs()
    }
    
    LoadEhr (EhrServerClient ehrserver)
@@ -43,6 +48,7 @@ class LoadEhr {
       loadComposers()
       loadDiagnosis()
       loadTexts()
+      loadDrugs()
    }
    
    def loadComposers()
@@ -59,6 +65,14 @@ class LoadEhr {
       def data_diagnosis = new File('.'+PS+'resources'+PS+'data'+PS+'diagnosticos.json')
       def jsonSlurper = new JsonSlurper()
       this.diagnosis = jsonSlurper.parseText(data_diagnosis.text)
+   }
+   
+   def loadDrugs()
+   {
+      // load composers from JSON
+      def data_drugs = new File('.'+PS+'resources'+PS+'data'+PS+'drogas_snomed.json')
+      def jsonSlurper = new JsonSlurper()
+      this.drugs = jsonSlurper.parseText(data_drugs.text)
    }
    
    def loadTexts()
@@ -108,7 +122,7 @@ class LoadEhr {
             // pick composer / committer
             def composerData = this.composers[ random.nextInt(this.composers.size) ]
          
-            final_compo = setTagsDemographicInstane(compo, composerData)
+            final_compo = setTagsDemographicInstance(compo, composerData)
             
             //println final_compo
             
@@ -150,14 +164,14 @@ class LoadEhr {
             // pick composer / committer
             def composerData = this.composers[ random.nextInt(this.composers.size) ]
          
-            final_compo = setTagsCodedDiagnosisInstane(compo, composerData) // ***
+            final_compo = setTagsCodedDiagnosisInstance(compo, composerData) // ***
             
             //println final_compo
             
             res = ehrserver.commit(ehr.uid, final_compo, (composerData.first_name+" "+composerData.last_name), 'CABOLABS-LOADEHR')
             
             //println ">>> " + res
-            println res.message
+            println res //.message
          }
          
          offset = ehrs.result.pagination.nextOffset
@@ -191,7 +205,7 @@ class LoadEhr {
             // pick composer / committer
             def composerData = this.composers[ random.nextInt(this.composers.size) ]
          
-            final_compo = setTagsWeightControlInstane(compo, composerData) // ***
+            final_compo = setTagsWeightControlInstance(compo, composerData) // ***
             
             res = ehrserver.commit(ehr.uid, final_compo, (composerData.first_name+" "+composerData.last_name), 'CABOLABS-LOADEHR')
             
@@ -222,7 +236,7 @@ class LoadEhr {
    }
    
 
-   def setTagsDemographicInstane(String tagged_compo, Map composerData)
+   def setTagsDemographicInstance(String tagged_compo, Map composerData)
    {
       def formatdt_oehr = new SimpleDateFormat(datetime_format_openEHR)
       def now_formatted = formatdt_oehr.format(new Date())
@@ -256,7 +270,7 @@ class LoadEhr {
       return tagged_compo
    }
    
-   def setTagsCodedDiagnosisInstane(String tagged_compo, Map composerData)
+   def setTagsCodedDiagnosisInstance(String tagged_compo, Map composerData)
    {
       def formatdt_oehr = new SimpleDateFormat(datetime_format_openEHR)
       def now_formatted = formatdt_oehr.format(new Date())
@@ -299,7 +313,7 @@ class LoadEhr {
       return tagged_compo
    }
    
-   def setTagsWeightControlInstane(String tagged_compo, Map composerData)
+   def setTagsWeightControlInstance(String tagged_compo, Map composerData)
    {
       def formatdt_oehr = new SimpleDateFormat(datetime_format_openEHR)
       def now_formatted = formatdt_oehr.format(new Date())
@@ -328,6 +342,50 @@ class LoadEhr {
         '[[Observaciones:::STRING]]'        : text,
         
         '[[Altura:::DV_QUANTITY_MAGNITUDE]]': height.toString(),
+        '[[Altura:::DV_QUANTITY_UNITS]]'    : 'm',
+        
+        '[[IMC:::DV_QUANTITY_MAGNITUDE]]'   : imc.toString(),
+        '[[IMC:::DV_QUANTITY_UNITS]]'       : 'kg/m2',
+      ]
+      
+      data.each { k, v ->
+         tagged_compo = tagged_compo.replace(k, v) // reaplace all strings
+      }
+      
+      return tagged_compo
+   }
+   
+   def setTagsMedicationPrescriptionInstance(String tagged_compo, Map composerData)
+   {
+      def formatdt_oehr = new SimpleDateFormat(datetime_format_openEHR)
+      def now_formatted = formatdt_oehr.format(new Date())
+      
+      def drug, drug_name, drug_code
+      drug = drugs[random.nextInt(this.texts.size)]
+      drug_name = drug.drug
+      drug_code = drug.conceptid
+      
+      // pick text
+      def text1 = texts[random.nextInt(this.texts.size)]
+      def text2 = texts[random.nextInt(this.texts.size)]
+      
+      def data = [
+        '[[CONTRIBUTION:::UUID]]'         : java.util.UUID.randomUUID() as String,
+        '[[COMMITTER_ID:::UUID]]'         : composerData.uid,
+        '[[COMMITTER_NAME:::STRING]]'     : composerData.first_name+" "+composerData.last_name,
+        '[[COMPOSER_ID:::UUID]]'          : composerData.uid,
+        '[[COMPOSER_NAME:::STRING]]'      : composerData.first_name+" "+composerData.last_name,
+        '[[TIME_COMMITTED:::DATETIME]]'   : now_formatted,
+        '[[VERSION_ID:::VERSION_ID]]'     : (java.util.UUID.randomUUID() as String) +'::CABOLABS-LOADEHR::1',
+        '[[COMPOSITION_DATE:::DATETIME]]' : now_formatted,
+        '[[COMPOSITION_SETTING_VALUE:::STRING]]' : 'Atencion medica primaria',
+        '[[COMPOSITION_SETTING_CODE:::STRING]]'  : '228',
+        
+        '[[orden_narativa:::INSTRUCTION_NARRATIVE_VALUE]]' : text1,
+        '[[Medicamento_nombre:::STRING]]'      : drug_name,
+        '[[Medicamento_codigo:::STRING]]'      : drug_code,
+        
+        '[[Indicaciones_generales:::STRING]]'  : text2,
         '[[Altura:::DV_QUANTITY_UNITS]]'    : 'm',
         
         '[[IMC:::DV_QUANTITY_MAGNITUDE]]'   : imc.toString(),

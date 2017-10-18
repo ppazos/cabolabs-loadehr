@@ -21,12 +21,12 @@ class Main {
       client.login('orgman', 'orgman', '123456')
       
       def loader = new LoadEhr(client)
-      //loader.createEhrs(100)
-      //loader.commitBasicDemographic()
-      //loader.commitCodedDiagnosis()
       
-      def start = System.currentTimeMillis()  
+      def start = System.currentTimeMillis() 
       
+      loader.createEhrs(500)
+      loader.commitBasicDemographic()
+      loader.commitCodedDiagnosis()
       loader.commitWeightControl()
       
       def now = System.currentTimeMillis()  
