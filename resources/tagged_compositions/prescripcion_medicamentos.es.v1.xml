@@ -150,45 +150,8 @@
                 <value>Temporización</value>
               </name>
               <value xsi:type="DV_TEXT">
-                <value>[[Temporización:::STRING]]</value>
+                <value>[[Temporizacion:::STRING]]</value>
               </value>
-            </items>
-            <items archetype_node_id="at0010" xsi:type="CLUSTER">
-              <name>
-                <value>Temporización estructurada</value>
-              </name>
-              <items archetype_node_id="at0029" xsi:type="ELEMENT">
-                <name>
-                  <value>Cuando sea necesario</value>
-                </name>
-                <value xsi:type="DV_BOOLEAN">
-                  <value>[[Cuando_sea_necesario:::BOOLEAN]]</value>
-                </value>
-              </items>
-              <items archetype_node_id="at0012" xsi:type="ELEMENT">
-                <name>
-                  <value>Fecha de comienzo</value>
-                </name>
-                <value xsi:type="DV_DATE_TIME">
-                  <value>[[Fecha_de_comienzo:::DATETIME]]</value>
-                </value>
-              </items>
-              <items archetype_node_id="at0014" xsi:type="ELEMENT">
-                <name>
-                  <value>Duración del tratamiento</value>
-                </name>
-                <value xsi:type="DV_DURATION">
-                  <value>[[Duración_del_tratamiento:::DV_DURATION_VALUE]]</value>
-                </value>
-              </items>
-              <items archetype_node_id="at0015" xsi:type="ELEMENT">
-                <name>
-                  <value>Número de administraciones</value>
-                </name>
-                <value xsi:type="DV_COUNT">
-                  <magnitude>[[Número_de_administraciones:::INTEGER]]</magnitude>
-                </value>
-              </items>
             </items>
             <items archetype_node_id="at0023" xsi:type="CLUSTER">
               <name>
@@ -199,15 +162,7 @@
                   <value>Número de repeticiones</value>
                 </name>
                 <value xsi:type="DV_COUNT">
-                  <magnitude>[[Número_de_repeticiones:::INTEGER]]</magnitude>
-                </value>
-              </items>
-              <items archetype_node_id="at0046" xsi:type="ELEMENT">
-                <name>
-                  <value>Intervalo mínimo entre repeticiones</value>
-                </name>
-                <value xsi:type="DV_DURATION">
-                  <value>[[Intervalo_mínimo_entre_repeticiones:::DV_DURATION_VALUE]]</value>
+                  <magnitude>[[Numero_de_repeticiones:::INTEGER]]</magnitude>
                 </value>
               </items>
               <items archetype_node_id="at0026" xsi:type="ELEMENT">
@@ -215,15 +170,7 @@
                   <value>Sustitución de marca permitida</value>
                 </name>
                 <value xsi:type="DV_BOOLEAN">
-                  <value>[[Sustitución_de_marca_permitida:::BOOLEAN]]</value>
-                </value>
-              </items>
-              <items archetype_node_id="at0028" xsi:type="ELEMENT">
-                <name>
-                  <value>Instrucciones de dispensación</value>
-                </name>
-                <value xsi:type="DV_TEXT">
-                  <value>[[Instrucciones_de_dispensación:::STRING]]</value>
+                  <value>[[Sustitucion_de_marca_permitida:::BOOLEAN]]</value>
                 </value>
               </items>
             </items>

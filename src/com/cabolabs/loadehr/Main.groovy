@@ -20,14 +20,15 @@ class Main {
       //def client = new EhrServerAsyncClient('http://', 'cabolabs-ehrserver.rhcloud.com', 80, '/')
       client.login('orgman', 'orgman', '123456')
       
-      def loader = new LoadEhr(client)
+      def loadehr = new LoadEhr(client)
       
       def start = System.currentTimeMillis() 
       
-      loader.createEhrs(500)
-      loader.commitBasicDemographic()
-      loader.commitCodedDiagnosis()
-      loader.commitWeightControl()
+      //loadehr.createEhrs(2000)
+      loadehr.commitBasicDemographic()
+      loadehr.commitCodedDiagnosis(2)
+      loadehr.commitWeightControl(3)
+      loadehr.commitMedicationPresription(2)
       
       def now = System.currentTimeMillis()  
       println '...'+ ((now - start) + ' ms')
