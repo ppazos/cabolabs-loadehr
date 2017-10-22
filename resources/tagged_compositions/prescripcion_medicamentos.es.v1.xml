@@ -1,5 +1,6 @@
-<version xmlns="http://schemas.openehr.org/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ORIGINAL_VERSION">
-  <contribution>
+<versions xmlns="http://schemas.openehr.org/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<version xsi:type="ORIGINAL_VERSION">
+<contribution>
     <id xsi:type="HIER_OBJECT_ID">
       <value>[[CONTRIBUTION:::UUID]]</value>
     </id>
@@ -194,3 +195,4 @@
     </defining_code>
   </lifecycle_state>
 </version>
+</versions>

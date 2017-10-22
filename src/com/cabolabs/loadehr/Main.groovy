@@ -14,17 +14,19 @@ class Main {
          new Date() - random.nextInt((maxAge - minAge)*365) - minAge*365
       }
    
+      def ehrAmount = 5000
    
       //def client = new EhrServerClient('http://', 'localhost', 8090, '/ehr')
-      def client = new EhrServerAsyncClient('http://', 'localhost', 8090, '/ehr')
-      //def client = new EhrServerAsyncClient('http://', 'cabolabs-ehrserver.rhcloud.com', 80, '/')
+      //def client = new EhrServerAsyncClient('http://', 'localhost', 8090, '/ehr', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
+      def client = new EhrServerAsyncClient('http://', 'localhost', 8090, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
+      //def client = new EhrServerAsyncClient('http://', 'cabolabs-ehrserver.rhcloud.com', 80, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
       client.login('orgman', 'orgman', '123456')
       
       def loadehr = new LoadEhr(client)
       
       def start = System.currentTimeMillis() 
       
-      //loadehr.createEhrs(2000)
+      loadehr.createEhrs(ehrAmount)
       loadehr.commitBasicDemographic()
       loadehr.commitCodedDiagnosis(2)
       loadehr.commitWeightControl(3)

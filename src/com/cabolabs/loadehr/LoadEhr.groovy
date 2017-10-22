@@ -441,10 +441,13 @@ class LoadEhr {
         '[[Sustitucion_de_marca_permitida:::BOOLEAN]]' : 'true',
         
         // each 12 hours in HL7 GTS
+        // this doesnt work with XML directly, needs the CDATA to validate.
         '[[Orden:::ACTIVITY_TIMING_VALUE]]' : $/
+           <![CDATA[
            <effectiveTime xsi:type="PIVL_TS">
              <period value="12" unit="h"/>
            </effectiveTime>
+           ]]>
         /$,
         '[[Orden:::ACTIVITY_TIMING_FORMALISM]]' : 'HL7_GTS'
       ]
