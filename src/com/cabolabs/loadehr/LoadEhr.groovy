@@ -97,7 +97,7 @@ class LoadEhr {
       }
    }
    
-   def commitBasicDemographic()
+   def commitBasicDemographic(int offset = 0)
    {
       if (!this.templates) this.templates = ehrserver.getTemplates().result
       def template = this.templates.find { it.templateId == 'datos_demograficos.es.v1' }
@@ -113,7 +113,6 @@ class LoadEhr {
       String final_compo
 
       def res, composerData
-      def offset = 0
       def ehrs = ehrserver.getEhrs(50, offset)
       
       while (ehrs.result.ehrs.size() > 0) // pagination loop
@@ -138,7 +137,7 @@ class LoadEhr {
       }
    }
    
-   def commitCodedDiagnosis(int amountPerEHR = 1)
+   def commitCodedDiagnosis(int amountPerEHR = 1, int offset = 0)
    {
       if (!this.templates) this.templates = ehrserver.getTemplates().result
       def template = this.templates.find { it.templateId == 'encuentro_diagnostico_codificado.es.v1' }
@@ -154,7 +153,6 @@ class LoadEhr {
       String final_compo
 
       def res, composerData
-      def offset = 0
       def ehrs = ehrserver.getEhrs(50, offset)
       
       while (ehrs.result.ehrs.size() > 0) // pagination loop
@@ -180,7 +178,7 @@ class LoadEhr {
       }
    }
    
-   def commitWeightControl(int amountPerEHR = 1)
+   def commitWeightControl(int amountPerEHR = 1, int offset = 0)
    {
       if (!this.templates) this.templates = ehrserver.getTemplates().result
       def template = this.templates.find { it.templateId == 'control_del_peso.es.v1' }
@@ -196,7 +194,6 @@ class LoadEhr {
       String final_compo
 
       def res, composerData
-      def offset = 0
       def ehrs = ehrserver.getEhrs(50, offset)
       
       while (ehrs.result.ehrs.size() > 0) // pagination loop
@@ -221,7 +218,7 @@ class LoadEhr {
       }
    }
    
-   def commitMedicationPresription(int amountPerEHR = 1)
+   def commitMedicationPresription(int amountPerEHR = 1, int offset = 0)
    {
       if (!this.templates) this.templates = ehrserver.getTemplates().result
       def template = this.templates.find { it.templateId == 'prescripcion_medicamentos.es.v1' }
@@ -237,7 +234,6 @@ class LoadEhr {
       String final_compo
 
       def res, composerData
-      def offset = 0
       def ehrs = ehrserver.getEhrs(50, offset)
       
       while (ehrs.result.ehrs.size() > 0) // pagination loop
