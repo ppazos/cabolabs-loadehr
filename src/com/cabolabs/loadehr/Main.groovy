@@ -14,7 +14,7 @@ class Main {
          new Date() - random.nextInt((maxAge - minAge)*365) - minAge*365
       }
    
-      def ehrAmount = 5000
+      def ehrAmount = 500
    
       //def client = new EhrServerClient('http://', 'localhost', 8090, '/ehr')
       //def client = new EhrServerAsyncClient('http://', 'localhost', 8090, '/ehr', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
@@ -22,15 +22,22 @@ class Main {
       //def client = new EhrServerAsyncClient('http://', 'cabolabs-ehrserver.rhcloud.com', 80, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
       client.login('orgman', 'orgman', '123456')
       
+      //def client = new EhrServerAsyncClient('https://', 'server001.cloudehrserver.com', 443, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
+      //client.setAPIKey('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFwaWtleXBoa3FkdnFpYXl1cnRiZG9nZ2hjZXVwZHJ2ZXdjc2Zqc3BkeGNjeXpweXl0YmZsa2V5IiwiZXh0cmFkYXRhIjp7Im9yZ2FuaXphdGlvbiI6IjcyMzcyMiIsIm9yZ191aWQiOiI1NzkxOTk5MS1mYWExLTQ0YzQtODM2ZC1kYTgyY2I4MjkwZGMifSwiaXNzdWVkX2F0IjoiMjAxNy0xMC0yN1QxOTowNzo1My4zOTMtMDI6MDAifQ==.eWdKGScdgQNynMkWJ5alRAF7tN5t8eZ2veuHp0i43fc=')
+      
       def loadehr = new LoadEhr(client)
       
-      def start = System.currentTimeMillis() 
+      def start = System.currentTimeMillis()
       
+      /*
       loadehr.createEhrs(ehrAmount)
       loadehr.commitBasicDemographic()
       loadehr.commitCodedDiagnosis(2)
       loadehr.commitWeightControl(3)
       loadehr.commitMedicationPresription(2)
+      */
+      
+      loadehr.testIsFemale()
       
       def now = System.currentTimeMillis()  
       println '...'+ ((now - start) + ' ms')

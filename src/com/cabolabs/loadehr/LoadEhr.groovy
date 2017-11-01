@@ -258,6 +258,8 @@ class LoadEhr {
       }
    }
    
+
+   
    def loadTaggedDemographicInstance()
    {
       def compo = new File('.'+PS+'resources'+PS+'tagged_compositions'+PS+'Datos_demograficos_basicos_1.xml')
@@ -480,5 +482,57 @@ class LoadEhr {
           res = res + random.nextInt(24).hours + random.nextInt(60).minutes + random.nextInt(60).seconds
       }
       res
+   }
+   
+   // queries for commit consistency, like records that can only be for females or for males
+   boolean isFemale(String ehrUid)
+   {
+      def query = $/
+      {
+         "query": {
+            "name": "Femenino",
+            "type": "composition",
+            "isPublic": false,
+            "format": "json",
+            "criteriaLogic": "AND",
+            "where": [{
+               "cid": 1,
+               "archetypeId": "openEHR-EHR-ADMIN_ENTRY.basic_demographic.v1",
+               "path": "/data[at0001]/items[at0002]/value",
+               "rmTypeName": "DV_CODED_TEXT",
+               "class": "DataCriteriaDV_CODED_TEXT",
+               "allowAnyArchetypeVersion": false,
+               "codeValue": "at0004",
+               "codeOperand": "eq",
+               "terminologyIdValue": "local",
+               "terminologyIdOperand": "eq",
+               "spec": 0
+            }],
+            "select": [],
+            "group": "none"
+         },
+         "fromDate": "",
+         "toDate": "",
+         "retrieveData": "false",
+         "format": "json",
+         "qehrId": "${ehrUid}",
+         "composerUid": "",
+         "composerName": ""
+      }
+      /$
+      
+      def result = ehrserver.executeGivenQuery(query, ehrUid)
+      
+      //println result
+      
+      return result.data.size() > 0
+   }
+   
+   def testIsFemale()
+   {
+      def ehrs = ehrserver.getEhrs(50, 0)
+      ehrs.result.ehrs.each { ehr ->
+         println ehr.uid +" "+ isFemale(ehr.uid)
+      }
    }
 }
