@@ -258,6 +258,52 @@ class LoadEhr {
       }
    }
    
+   def commitObstetricHistory(int offset = 0)
+   {
+      if (!this.templates) this.templates = ehrserver.getTemplates().result
+      def template = this.templates.find { it.templateId == 'historial_obstetrico.es.v1' }
+      
+      if (!template)
+      {
+         println "Template historial_obstetrico.es.v1 is not loaded in the EHRServer"
+         return
+      }
+      
+      String compo = loadTaggedObstetricHistoryInstance() // ***
+      String final_compo
+
+      def res, composerData
+      def ehrs = ehrserver.getEhrs(50, offset)
+      
+      while (ehrs.result.ehrs.size() > 0) // pagination loop
+      {
+         ehrs.result.ehrs.each { ehr ->
+         
+            // TODO: for age > 40, do not set data for current pregnancy, just history.
+            // Now all data is set for current pregnancy.
+            
+            // commits only for female patients
+            if (isFemale(ehr.uid) && ageLowerThan(ehr.uid, 40))
+            {
+               // random skips, some women don't have pregnancies
+               if (random.nextInt(3) % 3 != 0) // 2/3 of the patients will have a pregnancy record
+               {
+                  // pick composer / committer
+                  composerData = this.composers[ random.nextInt(this.composers.size) ]
+               
+                  final_compo = setTagsObstetricHistoryInstance(compo, composerData) // ***
+                  
+                  res = ehrserver.commit(ehr.uid, final_compo, (composerData.first_name+" "+composerData.last_name), 'CABOLABS-LOADEHR')
+                  
+                  println res.message
+               }
+            }
+         }
+         
+         offset = ehrs.result.pagination.nextOffset
+         ehrs = ehrserver.getEhrs(50, offset) // get next 50
+      }
+   }
 
    
    def loadTaggedDemographicInstance()
@@ -284,6 +330,12 @@ class LoadEhr {
       return compo.text
    }
 
+   def loadTaggedObstetricHistoryInstance()
+   {
+      def compo = new File('.'+PS+'resources'+PS+'tagged_compositions'+PS+'historial_obstetrico.es.v1_tagged.xml')
+      return compo.text
+   }
+   
    def setTagsDemographicInstance(String tagged_compo, Map composerData)
    {
       def commit_time = formattedDateTime(new Date())
@@ -457,6 +509,53 @@ class LoadEhr {
       return tagged_compo
    }
    
+   def setTagsObstetricHistoryInstance(String tagged_compo, Map composerData)
+   {
+      def commit_time = formattedDateTime(new Date())
+      def start_time  = formattedDateTime(pastStartTime())
+      
+      def num = random.nextInt(3) + 1 // 1..3
+      
+      // pick text
+      def text1 = texts[random.nextInt(this.texts.size)]
+      def text2 = texts[random.nextInt(this.texts.size)]
+      
+      def data = [
+        '[[CONTRIBUTION:::UUID]]'         : java.util.UUID.randomUUID() as String,
+        '[[COMMITTER_ID:::UUID]]'         : composerData.uid,
+        '[[COMMITTER_NAME:::STRING]]'     : composerData.first_name+" "+composerData.last_name,
+        '[[COMPOSER_ID:::UUID]]'          : composerData.uid,
+        '[[COMPOSER_NAME:::STRING]]'      : composerData.first_name+" "+composerData.last_name,
+        '[[TIME_COMMITTED:::DATETIME]]'   : commit_time,
+        '[[VERSION_ID:::VERSION_ID]]'     : (java.util.UUID.randomUUID() as String) +'::CABOLABS-LOADEHR::1',
+        '[[COMPOSITION_DATE:::DATETIME]]' : start_time,
+        '[[COMPOSITION_SETTING_VALUE:::STRING]]'  : 'Atencion medica primaria',
+        '[[COMPOSITION_SETTING_CODE:::STRING]]'   : '228',
+        
+        '[[Fecha_de_actualización:::DATETIME]]'   : start_time,
+        '[[Ha_estado_embarazada:::BOOLEAN]]'      : (num == 1) ? 'false' : 'true', // 1 is current pregnancy, > 1 is had other pregnancies
+        '[[Gravidez:::INTEGER]]'                  : num, // total pregnancies included current
+        '[[Paridad:::INTEGER]]'                   : num - 1, // number of time the pregnancy was carrier above 20 weeks (all minus current)
+        '[[Nacimientos_a_termino:::INTEGER]]'     : num - 1,
+        '[[Nacimientos_pretermino:::INTEGER]]'    : 0,
+        '[[Abortos:::INTEGER]]'                   : 0,
+        
+        '[[Abortos_involuntarios:::INTEGER]]'     : 0,
+        '[[Embarazos_interrumpidos:::INTEGER]]'   : 0,
+        '[[Embarazos_ectopicos:::INTEGER]]'       : 0,
+        '[[Nacidos_muertos:::INTEGER]]'           : 0,
+        '[[Nacidos_vivos:::INTEGER]]'             : num - 1,
+        '[[Cesarea:::INTEGER]]'                   : 0,
+        '[[Nacimientos_Multiples__M_:::INTEGER]]' : 0,
+        '[[Nacidos_viviendo:::INTEGER]]'          : num - 1
+      ]
+      
+      data.each { k, v ->
+         tagged_compo = tagged_compo.replace(k, v) // reaplace all strings
+      }
+      
+      return tagged_compo
+   }
    
    String formattedDateTime(Date d)
    {
@@ -484,6 +583,25 @@ class LoadEhr {
       res
    }
    
+   boolean ehrContainsCompositionWithArchetypeID(String ehrUid, String archetypeId)
+   {
+      def result = ehrserver.getCompositions(ehrUid, 1, 0, archetypeId)
+      return result.result.result.size() > 0
+   }
+   
+   def testEhrContainsCompositionWithArchetypeID()
+   {
+      def arhcIds = ['openEHR-EHR-COMPOSITION.encounter.v1',
+                     'openEHR-EHR-COMPOSITION.obstetric_history.v1']
+                     
+      def ehrs = ehrserver.getEhrs(50, 0)
+      ehrs.result.ehrs.each { ehr ->
+         arhcIds.each { archId ->
+            println ehr.uid +" "+ archId +" "+ ehrContainsCompositionWithArchetypeID(ehr.uid, archId)
+         }
+      }
+   }
+   
    // queries for commit consistency, like records that can only be for females or for males
    boolean isFemale(String ehrUid)
    {
@@ -492,11 +610,9 @@ class LoadEhr {
          "query": {
             "name": "Femenino",
             "type": "composition",
-            "isPublic": false,
             "format": "json",
             "criteriaLogic": "AND",
             "where": [{
-               "cid": 1,
                "archetypeId": "openEHR-EHR-ADMIN_ENTRY.basic_demographic.v1",
                "path": "/data[at0001]/items[at0002]/value",
                "rmTypeName": "DV_CODED_TEXT",
@@ -505,15 +621,61 @@ class LoadEhr {
                "codeValue": "at0004",
                "codeOperand": "eq",
                "terminologyIdValue": "local",
-               "terminologyIdOperand": "eq",
-               "spec": 0
+               "terminologyIdOperand": "eq"
             }],
             "select": [],
             "group": "none"
          },
          "fromDate": "",
          "toDate": "",
-         "retrieveData": "false",
+         "retrieveData": false,
+         "format": "json",
+         "qehrId": "${ehrUid}",
+         "composerUid": "",
+         "composerName": ""
+      }
+      /$
+      
+      def result = ehrserver.executeGivenQuery(query, ehrUid)
+      
+      println result
+      
+      return result.data.size() > 0
+   }
+   
+   def testIsFemale()
+   {
+      def ehrs = ehrserver.getEhrs(50, 0)
+      ehrs.result.ehrs.each { ehr ->
+         println ehr.uid +" "+ isFemale(ehr.uid)
+      }
+   }
+   
+   boolean ageGreaterThan(String ehrUid, int age)
+   {
+      def query = $/
+      {
+         "query": {
+            "name": "Mayor de X años",
+            "type": "composition",
+            "format": "json",
+            "criteriaLogic": "AND",
+            "where": [{
+               "archetypeId": "openEHR-EHR-ADMIN_ENTRY.basic_demographic.v1",
+               "path": "/data[at0001]/items[at0006]/value",
+               "rmTypeName": "DV_DATE",
+               "class": "DataCriteriaDV_DATE",
+               "allowAnyArchetypeVersion": false,
+               "age_in_yearsValue": "${age}",
+               "age_in_yearsOperand": "gt",
+               "spec" : 1
+            }],
+            "select": [],
+            "group": "none"
+         },
+         "fromDate": "",
+         "toDate": "",
+         "retrieveData": false,
          "format": "json",
          "qehrId": "${ehrUid}",
          "composerUid": "",
@@ -527,12 +689,50 @@ class LoadEhr {
       
       return result.data.size() > 0
    }
+   boolean ageLowerThan(String ehrUid, int age)
+   {
+      def query = $/
+      {
+         "query": {
+            "name": "Mayor de X años",
+            "type": "composition",
+            "format": "json",
+            "criteriaLogic": "AND",
+            "where": [{
+               "archetypeId": "openEHR-EHR-ADMIN_ENTRY.basic_demographic.v1",
+               "path": "/data[at0001]/items[at0006]/value",
+               "rmTypeName": "DV_DATE",
+               "class": "DataCriteriaDV_DATE",
+               "allowAnyArchetypeVersion": false,
+               "age_in_yearsValue": "${age}",
+               "age_in_yearsOperand": "lt",
+               "spec" : 1
+            }],
+            "select": [],
+            "group": "none"
+         },
+         "fromDate": "",
+         "toDate": "",
+         "retrieveData": false,
+         "format": "json",
+         "qehrId": "${ehrUid}",
+         "composerUid": "",
+         "composerName": ""
+      }
+      /$
+      
+      def result = ehrserver.executeGivenQuery(query, ehrUid)
+      
+      println result
+      
+      return result.data.size() > 0
+   }
    
-   def testIsFemale()
+   def testAgeLowerThan()
    {
       def ehrs = ehrserver.getEhrs(50, 0)
       ehrs.result.ehrs.each { ehr ->
-         println ehr.uid +" "+ isFemale(ehr.uid)
+         println ehr.uid +" "+ ageLowerThan(ehr.uid, 40)
       }
    }
 }

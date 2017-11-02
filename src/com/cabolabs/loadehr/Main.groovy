@@ -17,9 +17,8 @@ class Main {
       def ehrAmount = 500
    
       //def client = new EhrServerClient('http://', 'localhost', 8090, '/ehr')
-      //def client = new EhrServerAsyncClient('http://', 'localhost', 8090, '/ehr', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
+ //     def client = new EhrServerAsyncClient('http://', 'localhost', 8090, '/ehr', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
       def client = new EhrServerAsyncClient('http://', 'localhost', 8090, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
-      //def client = new EhrServerAsyncClient('http://', 'cabolabs-ehrserver.rhcloud.com', 80, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
       client.login('orgman', 'orgman', '123456')
       
       //def client = new EhrServerAsyncClient('https://', 'server001.cloudehrserver.com', 443, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
@@ -29,15 +28,22 @@ class Main {
       
       def start = System.currentTimeMillis()
       
+      
+      //loadehr.createEhrs(ehrAmount)
+      
+      //loadehr.commitBasicDemographic()
+      
       /*
-      loadehr.createEhrs(ehrAmount)
-      loadehr.commitBasicDemographic()
       loadehr.commitCodedDiagnosis(2)
       loadehr.commitWeightControl(3)
       loadehr.commitMedicationPresription(2)
       */
       
-      loadehr.testIsFemale()
+      //loadehr.commitObstetricHistory()
+      
+      //loadehr.testIsFemale()
+      //loadehr.testEhrContainsCompositionWithArchetypeID()
+      loadehr.testAgeLowerThan()
       
       def now = System.currentTimeMillis()  
       println '...'+ ((now - start) + ' ms')
