@@ -285,6 +285,8 @@ class LoadEhr {
             // commits only for female patients
             if (isFemale(ehr.uid) && ageLowerThan(ehr.uid, 40))
             {
+            println "female < 40"
+            
                // random skips, some women don't have pregnancies
                if (random.nextInt(3) % 3 != 0) // 2/3 of the patients will have a pregnancy record
                {
@@ -534,20 +536,20 @@ class LoadEhr {
         
         '[[Fecha_de_actualización:::DATETIME]]'   : start_time,
         '[[Ha_estado_embarazada:::BOOLEAN]]'      : (num == 1) ? 'false' : 'true', // 1 is current pregnancy, > 1 is had other pregnancies
-        '[[Gravidez:::INTEGER]]'                  : num, // total pregnancies included current
-        '[[Paridad:::INTEGER]]'                   : num - 1, // number of time the pregnancy was carrier above 20 weeks (all minus current)
-        '[[Nacimientos_a_termino:::INTEGER]]'     : num - 1,
-        '[[Nacimientos_pretermino:::INTEGER]]'    : 0,
-        '[[Abortos:::INTEGER]]'                   : 0,
+        '[[Gravidez:::INTEGER]]'                  : num.toString(), // total pregnancies included current
+        '[[Paridad:::INTEGER]]'                   : (num - 1).toString(), // number of time the pregnancy was carrier above 20 weeks (all minus current)
+        '[[Nacimientos_a_termino:::INTEGER]]'     : (num - 1).toString(),
+        '[[Nacimientos_pretermino:::INTEGER]]'    : "0",
+        '[[Abortos:::INTEGER]]'                   : "0",
         
-        '[[Abortos_involuntarios:::INTEGER]]'     : 0,
-        '[[Embarazos_interrumpidos:::INTEGER]]'   : 0,
-        '[[Embarazos_ectopicos:::INTEGER]]'       : 0,
-        '[[Nacidos_muertos:::INTEGER]]'           : 0,
-        '[[Nacidos_vivos:::INTEGER]]'             : num - 1,
-        '[[Cesarea:::INTEGER]]'                   : 0,
-        '[[Nacimientos_Multiples__M_:::INTEGER]]' : 0,
-        '[[Nacidos_viviendo:::INTEGER]]'          : num - 1
+        '[[Abortos_involuntarios:::INTEGER]]'     : "0",
+        '[[Embarazos_interrumpidos:::INTEGER]]'   : "0",
+        '[[Embarazos_ectopicos:::INTEGER]]'       : "0",
+        '[[Nacidos_muertos:::INTEGER]]'           : "0",
+        '[[Nacidos_vivos:::INTEGER]]'             : (num - 1).toString(),
+        '[[Cesarea:::INTEGER]]'                   : "0",
+        '[[Nacimientos_Multiples__M_:::INTEGER]]' : "0",
+        '[[Nacidos_viviendo:::INTEGER]]'          : (num - 1).toString()
       ]
       
       data.each { k, v ->
