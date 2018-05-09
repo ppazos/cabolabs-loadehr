@@ -79,6 +79,25 @@
       </external_ref>
       <name>[[COMPOSER_NAME:::STRING]]</name>
     </composer>
+    <context>
+      <start_time>
+        <value>[[COMPOSITION_DATE:::DATETIME]]</value>
+      </start_time>
+      <setting>
+        <value>[[COMPOSITION_SETTING_VALUE:::STRING]]</value>
+        <defining_code>
+          <terminology_id>
+            <value>openehr</value>
+          </terminology_id>
+          <code_string>[[COMPOSITION_SETTING_CODE:::STRING]]</code_string>
+        </defining_code>
+      </setting>
+      <other_context archetype_node_id="at0001" xsi:type="ITEM_TREE">
+        <name>
+          <value>Tree</value>
+        </name><!-- SLOT NOT PROCESSED -->
+      </other_context>
+    </context>
     <content archetype_node_id="openEHR-EHR-SECTION.medication_order_list.v1" xsi:type="SECTION">
       <name>
         <value>Lista de medicamentos</value>

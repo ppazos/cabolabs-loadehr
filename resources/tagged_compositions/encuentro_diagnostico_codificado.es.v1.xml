@@ -119,7 +119,7 @@
             <value>Última actualización</value>
           </name>
           <value xsi:type="DV_DATE_TIME">
-            <value>[[Última_actualización:::DATETIME]]</value>
+            <value>[[ultima_actualizacion:::DATETIME]]</value>
           </value>
         </items><!-- SLOT NOT PROCESSED -->
       </protocol>
