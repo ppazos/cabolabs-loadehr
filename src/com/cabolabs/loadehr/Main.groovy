@@ -39,12 +39,14 @@ class Main {
 
       def start = System.currentTimeMillis()
 
-
+      /*
       loadehr.createEhrs(ehrAmount)
       loadehr.commitBasicDemographic()
       loadehr.commitCodedDiagnosis(3)
       loadehr.commitWeightControl(3)
       loadehr.commitMedicationPresription(2)
+      */
+      loadehr.commitPAPTestResults(2)
 
 
       // data should be indexed before committing obstetric history

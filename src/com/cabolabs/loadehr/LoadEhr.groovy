@@ -322,6 +322,57 @@ class LoadEhr {
       }
    }
 
+   def commitPAPTestResults(int amountPerEHR = 1, int offset = 0)
+   {
+      if (!this.templates) this.templates = ehrserver.getTemplates().result
+      def template = this.templates.find { it.templateId == 'resultado_pap.es.v1' }
+
+      if (!template)
+      {
+         println "Template resultado_pap.es.v1 is not loaded in the EHRServer"
+         return
+      }
+
+      String compo = loadTaggedPAPTestResultInstance() // ***
+      String final_compo
+
+      def res, composerData
+      def ehrs = ehrserver.getEhrs(50, offset)
+      def i = 1
+
+      while (ehrs.result.ehrs.size() > 0) // pagination loop
+      {
+         ehrs.result.ehrs.each { ehr ->
+
+            // commits only for female patients
+            if (isFemale(ehr.uid))
+            {
+               // random skips, some women don't have PAP tests
+               if (random.nextInt(3) % 3 != 0) // 2/3 of the patients will have a PAP result
+               {
+                  (1..amountPerEHR).each {
+
+                     println "Commit $i tid:"+ template.templateId
+
+                     // pick composer / committer
+                     composerData = this.composers[ random.nextInt(this.composers.size) ]
+
+                     final_compo = setTagsPAPTestResultInstance(compo, composerData) // ***
+
+                     res = ehrserver.commit(ehr.uid, final_compo, (composerData.first_name+" "+composerData.last_name), 'CABOLABS-LOADEHR')
+
+                     println '> '+ res
+                     i++
+                  }
+               }
+            }
+         }
+
+         offset = ehrs.result.pagination.nextOffset
+         ehrs = ehrserver.getEhrs(50, offset) // get next 50
+      }
+   }
+
 
    def loadTaggedDemographicInstance()
    {
@@ -352,6 +403,13 @@ class LoadEhr {
       def compo = new File('.'+PS+'resources'+PS+'tagged_compositions'+PS+'historial_obstetrico.es.v1_tagged.xml')
       return compo.text
    }
+
+   def loadTaggedPAPTestResultInstance()
+   {
+      def compo = new File('.'+PS+'resources'+PS+'tagged_compositions'+PS+'resultado_pap.es.v1_tagged.xml')
+      return compo.text
+   }
+
 
    def setTagsDemographicInstance(String tagged_compo, Map composerData)
    {
@@ -389,7 +447,7 @@ class LoadEhr {
    def setTagsCodedDiagnosisInstance(String tagged_compo, Map composerData)
    {
       def commit_time = formattedDateTime(new Date())
-      def start_time  = formattedDateTime(pastStartTime())
+      def start_time  = formattedDateTime(pastDate())
 
       // pick diagnosis
       def diagnosisData = this.diagnosis[ random.nextInt(this.diagnosis.size) ]
@@ -432,7 +490,7 @@ class LoadEhr {
    def setTagsWeightControlInstance(String tagged_compo, Map composerData)
    {
       def commit_time = formattedDateTime(new Date())
-      def start_time  = formattedDateTime(pastStartTime())
+      def start_time  = formattedDateTime(pastDate())
 
       def weight = random.nextInt(105) + 45         // 45..150 Kg
       def height = (random.nextInt(55) + 140) / 100 // 1.40..1.95 m
@@ -474,7 +532,7 @@ class LoadEhr {
    def setTagsMedicationPrescriptionInstance(String tagged_compo, Map composerData)
    {
       def commit_time = formattedDateTime(new Date())
-      def start_time  = formattedDateTime(pastStartTime())
+      def start_time  = formattedDateTime(pastDate())
 
       def drug, drug_name, drug_code
       drug = drugs[random.nextInt(this.texts.size)]
@@ -529,7 +587,7 @@ class LoadEhr {
    def setTagsObstetricHistoryInstance(String tagged_compo, Map composerData)
    {
       def commit_time = formattedDateTime(new Date())
-      def start_time  = formattedDateTime(pastStartTime())
+      def start_time  = formattedDateTime(pastDate())
 
       def num = random.nextInt(3) + 1 // 1..3
 
@@ -574,15 +632,54 @@ class LoadEhr {
       return tagged_compo
    }
 
+   def setTagsPAPTestResultInstance(String tagged_compo, Map composerData)
+   {
+      def commit_time = formattedDateTime(new Date())
+      def start_time  = formattedDateTime(pastDate())
+
+      // pick text
+      def text1 = texts[random.nextInt(this.texts.size)]
+
+      // in the past, since 10 years ago
+      def studyDate = formattedDateTime(pastDate(10))
+
+      def data = [
+        '[[CONTRIBUTION:::UUID]]'         : java.util.UUID.randomUUID() as String,
+        '[[COMMITTER_ID:::UUID]]'         : composerData.uid,
+        '[[COMMITTER_NAME:::STRING]]'     : composerData.first_name+" "+composerData.last_name,
+        '[[COMPOSER_ID:::UUID]]'          : composerData.uid,
+        '[[COMPOSER_NAME:::STRING]]'      : composerData.first_name+" "+composerData.last_name,
+        '[[TIME_COMMITTED:::DATETIME]]'   : commit_time,
+        '[[VERSION_ID:::VERSION_ID]]'     : (java.util.UUID.randomUUID() as String) +'::CABOLABS-LOADEHR::1',
+        '[[COMPOSITION_DATE:::DATETIME]]' : start_time,
+        '[[COMPOSITION_SETTING_VALUE:::STRING]]': 'Atencion medica primaria',
+        '[[COMPOSITION_SETTING_CODE:::STRING]]' : '228',
+
+        '[[HISTORY_ORIGIN:::DATETIME]]'  : studyDate,
+        '[[EVENT_TIME:::DATETIME]]'      : studyDate,
+        '[[Resultado:::CODEDTEXT_VALUE]]': 'Normal (negativo)',
+        '[[Resultado:::CODEDTEXT_CODE]]' : 'at0005',
+        '[[Comentarios:::STRING]]'       : text1
+      ]
+
+      data.each { k, v ->
+         tagged_compo = tagged_compo.replace(k, v) // reaplace all strings
+      }
+
+      return tagged_compo
+   }
+
+
    String formattedDateTime(Date d)
    {
       def format = new SimpleDateFormat(datetime_format_openEHR)
       format.format(d)
    }
 
-   Date pastStartTime()
+   Date pastDate(int sinceYears = 4)
    {
-      def from  = Date.parse('yyyy-MM-dd', '2010-01-01')
+      //def from  = Date.parse('yyyy-MM-dd', '2010-01-01')
+      def from = new Date() - sinceYears*365
       def until = new Date()
       dateBetween(from..until)
    }
@@ -622,6 +719,7 @@ class LoadEhr {
    // queries for commit consistency, like records that can only be for females or for males
    boolean isFemale(String ehrUid)
    {
+      /* old query struct
       def query = $/
       {
          "query": {
@@ -652,6 +750,40 @@ class LoadEhr {
          "composerName": ""
       }
       /$
+      */
+
+      def query = $/
+      {
+        "query": {
+          "name": "Femenino",
+          "type": "composition",
+          "format": "json",
+          "where": {
+            "_type": "COND",
+   			"archetypeId": "openEHR-EHR-ADMIN_ENTRY.basic_demographic.v1",
+   			"path": "/data[at0001]/items[at0002]/value",
+   			"rmTypeName": "DV_CODED_TEXT",
+   			"class": "DataCriteriaDV_CODED_TEXT",
+   			"allowAnyArchetypeVersion": false,
+   			"codeValue": "at0004",
+   			"codeOperand": "eq",
+   			"terminologyIdValue": "local",
+   			"terminologyIdOperand": "eq"
+          },
+          "select": [],
+          "group": "none"
+        },
+        "fromDate": "",
+        "toDate": "",
+        "format": "json",
+        "qehrId": "${ehrUid}",
+        "composerUid": "",
+        "composerName": "",
+        "max": 10,
+        "offset": 0,
+        "retrieveData": false
+      }
+      /$
 
       def result = ehrserver.executeGivenQuery(query, ehrUid)
 
@@ -670,10 +802,11 @@ class LoadEhr {
 
    boolean ageGreaterThan(String ehrUid, int age)
    {
+      /* old query struct
       def query = $/
       {
          "query": {
-            "name": "Mayor de X a�os",
+            "name": "Mayor de X años",
             "type": "composition",
             "format": "json",
             "criteriaLogic": "AND",
@@ -699,6 +832,38 @@ class LoadEhr {
          "composerName": ""
       }
       /$
+      */
+
+      def query = $/
+      {
+        "query": {
+          "name": "Mayor de X años",
+          "type": "composition",
+          "format": "json",
+          "where": {
+            "_type": "COND",
+            "archetypeId": "openEHR-EHR-ADMIN_ENTRY.basic_demographic.v1",
+            "path": "/data[at0001]/items[at0006]/value",
+            "rmTypeName": "DV_DATE",
+            "class": "DataCriteriaDV_DATE",
+            "allowAnyArchetypeVersion": false,
+            "age_in_yearsValue": "${age}",
+            "age_in_yearsOperand": "ge"
+          },
+          "select": [],
+          "group": "none"
+        },
+        "fromDate": "",
+        "toDate": "",
+        "format": "json",
+        "qehrId": "${ehrUid}",
+        "composerUid": "",
+        "composerName": "",
+        "max": 10,
+        "offset": 0,
+        "retrieveData": false
+      }
+      /$
 
       def result = ehrserver.executeGivenQuery(query, ehrUid)
 
@@ -708,10 +873,11 @@ class LoadEhr {
    }
    boolean ageLowerThan(String ehrUid, int age)
    {
+      /* old query struct
       def query = $/
       {
          "query": {
-            "name": "Mayor de X a�os",
+            "name": "Menor de X años",
             "type": "composition",
             "format": "json",
             "criteriaLogic": "AND",
@@ -737,6 +903,38 @@ class LoadEhr {
          "composerName": ""
       }
       /$
+      */
+      def query = $/
+      {
+        "query": {
+          "name": "Menor de X años",
+          "type": "composition",
+          "format": "json",
+          "where": {
+            "_type": "COND",
+            "archetypeId": "openEHR-EHR-ADMIN_ENTRY.basic_demographic.v1",
+            "path": "/data[at0001]/items[at0006]/value",
+            "rmTypeName": "DV_DATE",
+            "class": "DataCriteriaDV_DATE",
+            "allowAnyArchetypeVersion": false,
+            "age_in_yearsValue": "${age}",
+            "age_in_yearsOperand": "lt"
+          },
+          "select": [],
+          "group": "none"
+        },
+        "fromDate": "",
+        "toDate": "",
+        "format": "json",
+        "qehrId": "${ehrUid}",
+        "composerUid": "",
+        "composerName": "",
+        "max": 10,
+        "offset": 0,
+        "retrieveData": false
+      }
+      /$
+
 
       def result = ehrserver.executeGivenQuery(query, ehrUid)
 
