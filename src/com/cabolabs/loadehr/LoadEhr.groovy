@@ -366,6 +366,58 @@ class LoadEhr {
                   }
                }
             }
+            else
+            {
+               println "EHR ${ehr.uid} no es femenino"
+            }
+         }
+
+         offset = ehrs.result.pagination.nextOffset
+         ehrs = ehrserver.getEhrs(50, offset) // get next 50
+      }
+   }
+
+   def commitSignosVitales(int amountPerEHR = 1, int offset = 0)
+   {
+      if (!this.templates) this.templates = ehrserver.getTemplates().result
+      def template = this.templates.find { it.templateId == 'resumen_de_signos_vitales.es.v1' }
+
+      if (!template)
+      {
+         println "Template resumen_de_signos_vitales.es.v1 is not loaded in the EHRServer"
+         return
+      }
+
+      String compo = loadTaggedSignosVitalesInstance() // ***
+      String final_compo
+
+      def res, composerData
+      def ehrs = ehrserver.getEhrs(50, offset)
+      def i = 1
+      def same_ehr // used to generate consistent data into the same EHR like height
+
+      while (ehrs.result.ehrs.size() > 0) // pagination loop
+      {
+         ehrs.result.ehrs.each { ehr ->
+
+            same_ehr = false
+
+            (1..amountPerEHR).each {
+
+               println "Commit $i tid:"+ template.templateId
+
+               // pick composer / committer
+               composerData = this.composers[ random.nextInt(this.composers.size) ]
+
+               final_compo = setTagsSignosVitalesInstance(compo, composerData, same_ehr) // ***
+
+               res = ehrserver.commit(ehr.uid, final_compo, (composerData.first_name+" "+composerData.last_name), 'CABOLABS-LOADEHR')
+
+               println '> '+ res
+               i++
+
+               same_ehr = true
+            }
          }
 
          offset = ehrs.result.pagination.nextOffset
@@ -407,6 +459,12 @@ class LoadEhr {
    def loadTaggedPAPTestResultInstance()
    {
       def compo = new File('.'+PS+'resources'+PS+'tagged_compositions'+PS+'resultado_pap.es.v1_tagged.xml')
+      return compo.text
+   }
+
+   def loadTaggedSignosVitalesInstance()
+   {
+      def compo = new File('.'+PS+'resources'+PS+'tagged_compositions'+PS+'resumen_de_signos_vitales.es.v1.tagged_instance.xml')
       return compo.text
    }
 
@@ -492,6 +550,7 @@ class LoadEhr {
       def commit_time = formattedDateTime(new Date())
       def start_time  = formattedDateTime(pastDate())
 
+      // TODO: height should be fixed by EHR
       def weight = random.nextInt(105) + 45         // 45..150 Kg
       def height = (random.nextInt(55) + 140) / 100 // 1.40..1.95 m
       def imc    = weight / (height**2)
@@ -660,6 +719,94 @@ class LoadEhr {
         '[[Resultado:::CODEDTEXT_VALUE]]': 'Normal (negativo)',
         '[[Resultado:::CODEDTEXT_CODE]]' : 'at0005',
         '[[Comentarios:::STRING]]'       : text1
+      ]
+
+      data.each { k, v ->
+         tagged_compo = tagged_compo.replace(k, v) // reaplace all strings
+      }
+
+      return tagged_compo
+   }
+
+   def setTagsSignosVitalesInstance(String tagged_compo, Map composerData, boolean same_ehr)
+   {
+      def commit_time = formattedDateTime(new Date())
+      def start_time  = formattedDateTime(pastDate(5))
+
+      // La altura deberia ser fijo por EHR
+      def altura = 1.72
+      def peso   = random.nextInt(105) + 45         // 45..150 Kg
+      def imc    = peso / (altura**2)
+
+      def data = [
+        '[[CONTRIBUTION:::UUID]]'         : java.util.UUID.randomUUID() as String,
+        '[[COMMITTER_ID:::UUID]]'         : composerData.uid,
+        '[[COMMITTER_NAME:::STRING]]'     : composerData.first_name+" "+composerData.last_name,
+        '[[COMPOSER_ID:::UUID]]'          : composerData.uid,
+        '[[COMPOSER_NAME:::STRING]]'      : composerData.first_name+" "+composerData.last_name,
+        '[[TIME_COMMITTED:::DATETIME]]'   : commit_time,
+        '[[VERSION_ID:::VERSION_ID]]'     : (java.util.UUID.randomUUID() as String) +'::CABOLABS-LOADEHR::1',
+        '[[COMPOSITION_DATE:::DATETIME]]' : start_time,
+        '[[COMPOSITION_SETTING_VALUE:::STRING]]': 'Atencion medica primaria',
+        '[[COMPOSITION_SETTING_CODE:::STRING]]' : '228',
+
+        '[[BP_HISTORY_ORIGIN:::DATETIME]]'         : start_time,
+        '[[BP_EVENT_TIME:::DATETIME]]'             : start_time,
+        '[[TEMPERATURA_HISTORY_ORIGIN:::DATETIME]]': start_time,
+        '[[TEMPERATURA_EVENT_TIME:::DATETIME]]'    : start_time,
+        '[[PESO_HISTORY_ORIGIN:::DATETIME]]'       : start_time,
+        '[[PESO_EVENT_TIME:::DATETIME]]'           : start_time,
+        '[[FC_HISTORY_ORIGIN:::DATETIME]]'         : start_time,
+        '[[FC_EVENT_TIME:::DATETIME]]'             : start_time,
+        '[[FR_HISTORY_ORIGIN:::DATETIME]]'         : start_time,
+        '[[FR_EVENT_TIME:::DATETIME]]'             : start_time,
+        '[[OXI_HISTORY_ORIGIN:::DATETIME]]'        : start_time,
+        '[[OXI_EVENT_TIME:::DATETIME]]'            : start_time,
+        '[[ALTURA_HISTORY_ORIGIN:::DATETIME]]'     : start_time,
+        '[[ALTURA_EVENT_TIME:::DATETIME]]'         : start_time,
+        '[[IMC_HISTORY_ORIGIN:::DATETIME]]'        : start_time,
+        '[[IMC_EVENT_TIME:::DATETIME]]'            : start_time,
+
+        '[[SISTOLICA:::DV_QUANTITY_MAGNITUDE]]': '120', // 100..180
+        '[[SISTOLICA:::DV_QUANTITY_UNITS]]' : 'mmHg',
+        '[[DIASTOLICA:::DV_QUANTITY_MAGNITUDE]]': '98', // 50..110
+        '[[DIASTOLICA:::DV_QUANTITY_UNITS]]' : 'mmHg',
+
+        '[[Temperatura:::DV_QUANTITY_MAGNITUDE]]': '37', // 60..10
+        '[[Temperatura:::DV_QUANTITY_UNITS]]' : 'Cel',
+
+        '[[Peso:::DV_QUANTITY_MAGNITUDE]]': '78', // 60..10
+        '[[Peso:::DV_QUANTITY_UNITS]]' : 'kg',
+
+        '[[FrecuenciaCardiaca:::DV_QUANTITY_MAGNITUDE]]': '75', // 60..100
+        '[[FrecuenciaCardiaca:::DV_QUANTITY_UNITS]]' : '{Latidos}/min',
+
+        '[[FrecuenciaRespiratoria:::DV_QUANTITY_MAGNITUDE]]': '16', // 12 .. 16
+        '[[FrecuenciaRespiratoria:::DV_QUANTITY_UNITS]]' : '{Respiraciones}/min',
+
+        '[[SpO2:::DV_PROPORTION_NUMERATOR]]': '96',
+        '[[SpO2:::DV_PROPORTION_DENOMINATOR]]' : '100',
+        '[[SpO2:::DV_PROPORTION_TYPE]]': '2', // PROP KIND PERCENT
+        '[[SpO2:::DV_PROPORTION_PRECISION]]' : '0',
+
+        '[[SpOC:::DV_QUANTITY_MAGNITUDE]]': '0.9',
+        '[[SpOC:::DV_QUANTITY_UNITS]]' : 'ml/dl',
+
+        '[[SpCO:::DV_PROPORTION_NUMERATOR]]': '92',
+        '[[SpCO:::DV_PROPORTION_DENOMINATOR]]' : '100',
+        '[[SpCO:::DV_PROPORTION_TYPE]]': '2',
+        '[[SpCO:::DV_PROPORTION_PRECISION]]' : '0',
+
+        '[[SpMet:::DV_PROPORTION_NUMERATOR]]': '94',
+        '[[SpMet:::DV_PROPORTION_DENOMINATOR]]' : '100',
+        '[[SpMet:::DV_PROPORTION_TYPE]]': '2',
+        '[[SpMet:::DV_PROPORTION_PRECISION]]' : '0',
+
+        '[[Altura:::DV_QUANTITY_MAGNITUDE]]': altura.toString(),
+        '[[Altura:::DV_QUANTITY_UNITS]]' : 'm',
+
+        '[[IMC:::DV_QUANTITY_MAGNITUDE]]': imc.toString(),
+        '[[IMC:::DV_QUANTITY_UNITS]]' : 'kg/m2'
       ]
 
       data.each { k, v ->

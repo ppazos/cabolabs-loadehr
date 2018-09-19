@@ -39,19 +39,26 @@ class Main {
 
       def start = System.currentTimeMillis()
 
+
+      //loadehr.createEhrs(ehrAmount)
+      //loadehr.commitBasicDemographic()
       /*
-      loadehr.createEhrs(ehrAmount)
-      loadehr.commitBasicDemographic()
       loadehr.commitCodedDiagnosis(3)
       loadehr.commitWeightControl(3)
       loadehr.commitMedicationPresription(2)
       */
-      loadehr.commitPAPTestResults(2)
 
+      loadehr.commitSignosVitales(5)
 
+      // Necesitan paciente femenina, pero el commit de demographic puede tardar
+      // en indexar asi que deberia ejecutarse en segunda vuelta
       // data should be indexed before committing obstetric history
   //    sleep(120 * 1000)
       //loadehr.commitObstetricHistory()
+
+      sleep(120 * 1000)
+      loadehr.commitPAPTestResults(3)
+      // =========================================
 
       //loadehr.testIsFemale()
       //loadehr.testEhrContainsCompositionWithArchetypeID()
