@@ -20,9 +20,7 @@ class Main {
 
       //def client = new EhrServerClient('http://', 'localhost', 8090, '/ehr')
       def client = new EhrServerAsyncClient('http://', 'localhost', 8090, '/ehr', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
-  //    def client = new EhrServerAsyncClient('http://', 'localhost', 8090, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
       def res = client.login('orgman', 'orgman', '123456')
-
       if (res.status in 200..299)
       {}
       else
@@ -31,24 +29,25 @@ class Main {
          System.exit(-1)
       }
 
-/*
-      def client = new EhrServerAsyncClient('https://', 'server001.cloudehrserver.com', 443, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
-      client.setAPIKey('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFwaWtleXBoa3FkdnFpYXl1cnRiZG9nZ2hjZXVwZHJ2ZXdjc2Zqc3BkeGNjeXpweXl0YmZsa2V5IiwiZXh0cmFkYXRhIjp7Im9yZ2FuaXphdGlvbiI6IjcyMzcyMiIsIm9yZ191aWQiOiI1NzkxOTk5MS1mYWExLTQ0YzQtODM2ZC1kYTgyY2I4MjkwZGMifSwiaXNzdWVkX2F0IjoiMjAxNy0xMC0yN1QxOTowNzo1My4zOTMtMDI6MDAifQ==.eWdKGScdgQNynMkWJ5alRAF7tN5t8eZ2veuHp0i43fc=')
-*/
-      def loadehr = new LoadEhr(client)
 
+/*
+      def client = new EhrServerAsyncClient('http://', 'server001.cloudehrserver.com', 80, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
+      //def client = new EhrServerAsyncClient('https://', 'server001.cloudehrserver.com', 443, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
+      client.setAPIKey('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFwaWtleXhjd3FsaXlyZXJxbXlndmR6dnZmZWhranRpd3N0bXNkaXhyeGhtdHJqaWhrdXp0dnFuIiwiZXh0cmFkYXRhIjp7Im9yZ2FuaXphdGlvbiI6IjcyMzcyMiIsIm9yZ191aWQiOiI1NzkxOTk5MS1mYWExLTQ0YzQtODM2ZC1kYTgyY2I4MjkwZGMifSwiaXNzdWVkX2F0IjoiMjAxOC0wOS0xOVQyMDo1NjowOC4wNzktMDM6MDAifQ==.1OyxehbGZtm6vTIfhw1mWbj7M/lUFelsOXlaRhkgqdU=')
+*/
+
+      def loadehr = new LoadEhr(client)
       def start = System.currentTimeMillis()
 
 
-      //loadehr.createEhrs(ehrAmount)
-      //loadehr.commitBasicDemographic()
+      loadehr.createEhrs(ehrAmount)
+      loadehr.commitBasicDemographic()
       /*
       loadehr.commitCodedDiagnosis(3)
       loadehr.commitWeightControl(3)
       loadehr.commitMedicationPresription(2)
       */
-
-      loadehr.commitSignosVitales(5)
+      //loadehr.commitSignosVitales(5)
 
       // Necesitan paciente femenina, pero el commit de demographic puede tardar
       // en indexar asi que deberia ejecutarse en segunda vuelta
@@ -56,7 +55,7 @@ class Main {
   //    sleep(120 * 1000)
       //loadehr.commitObstetricHistory()
 
-      sleep(120 * 1000)
+      sleep(100 * 1000)
       loadehr.commitPAPTestResults(3)
       // =========================================
 

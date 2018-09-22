@@ -31,6 +31,7 @@ class LoadEhr {
       [name: 'Moderada',  code:'at0048'],
       [name: 'Severo',    code:'at0049']
    ]
+   Map temp = [:] // temporal data used by tag replacers
 
    LoadEhr (EhrServerAsyncClient ehrserver)
    {
@@ -733,10 +734,16 @@ class LoadEhr {
       def commit_time = formattedDateTime(new Date())
       def start_time  = formattedDateTime(pastDate(5))
 
-      // La altura deberia ser fijo por EHR
-      def altura = 1.72
-      def peso   = random.nextInt(105) + 45         // 45..150 Kg
-      def imc    = peso / (altura**2)
+      // generates height only for different EHRs
+      // it will be the same for the same EHR
+      if (!same_ehr)
+      {
+         temp['altura'] = randomNear(170, 30) // 140..200 cm
+      }
+
+      def altura = temp['altura']
+      def peso   = randomNear(85, 25) // 60..110 kg
+      def imc    = peso / ((altura/100)**2)
 
       def data = [
         '[[CONTRIBUTION:::UUID]]'         : java.util.UUID.randomUUID() as String,
@@ -767,21 +774,21 @@ class LoadEhr {
         '[[IMC_HISTORY_ORIGIN:::DATETIME]]'        : start_time,
         '[[IMC_EVENT_TIME:::DATETIME]]'            : start_time,
 
-        '[[SISTOLICA:::DV_QUANTITY_MAGNITUDE]]': '120', // 100..180
+        '[[SISTOLICA:::DV_QUANTITY_MAGNITUDE]]': randomNear(140, 30).toString(), // 110..170
         '[[SISTOLICA:::DV_QUANTITY_UNITS]]' : 'mmHg',
-        '[[DIASTOLICA:::DV_QUANTITY_MAGNITUDE]]': '98', // 50..110
+        '[[DIASTOLICA:::DV_QUANTITY_MAGNITUDE]]': randomNear(80, 25).toString(), // 55..105
         '[[DIASTOLICA:::DV_QUANTITY_UNITS]]' : 'mmHg',
 
-        '[[Temperatura:::DV_QUANTITY_MAGNITUDE]]': '37', // 60..10
+        '[[Temperatura:::DV_QUANTITY_MAGNITUDE]]': randomNear(37, 1).toString(), // 36..38
         '[[Temperatura:::DV_QUANTITY_UNITS]]' : 'Cel',
 
-        '[[Peso:::DV_QUANTITY_MAGNITUDE]]': '78', // 60..10
+        '[[Peso:::DV_QUANTITY_MAGNITUDE]]': peso.toString(), // 60..100
         '[[Peso:::DV_QUANTITY_UNITS]]' : 'kg',
 
-        '[[FrecuenciaCardiaca:::DV_QUANTITY_MAGNITUDE]]': '75', // 60..100
+        '[[FrecuenciaCardiaca:::DV_QUANTITY_MAGNITUDE]]': randomNear(80, 20).toString(), // 60..100
         '[[FrecuenciaCardiaca:::DV_QUANTITY_UNITS]]' : '{Latidos}/min',
 
-        '[[FrecuenciaRespiratoria:::DV_QUANTITY_MAGNITUDE]]': '16', // 12 .. 16
+        '[[FrecuenciaRespiratoria:::DV_QUANTITY_MAGNITUDE]]': randomNear(14, 2).toString(), // 12 .. 16
         '[[FrecuenciaRespiratoria:::DV_QUANTITY_UNITS]]' : '{Respiraciones}/min',
 
         '[[SpO2:::DV_PROPORTION_NUMERATOR]]': '96',
@@ -803,7 +810,7 @@ class LoadEhr {
         '[[SpMet:::DV_PROPORTION_PRECISION]]' : '0',
 
         '[[Altura:::DV_QUANTITY_MAGNITUDE]]': altura.toString(),
-        '[[Altura:::DV_QUANTITY_UNITS]]' : 'm',
+        '[[Altura:::DV_QUANTITY_UNITS]]' : 'cm',
 
         '[[IMC:::DV_QUANTITY_MAGNITUDE]]': imc.toString(),
         '[[IMC:::DV_QUANTITY_UNITS]]' : 'kg/m2'
@@ -843,6 +850,15 @@ class LoadEhr {
       }
       res
    }
+
+   // randomNear(x,y) will return random numbers between x-y and x+y
+   static int randomNear(int me, int around)
+   {
+      def range = (me-around)..(me+around)
+      Random r = new Random()
+      return r.nextInt((range.to - range.from) + 1) + range.from
+   }
+
 
    boolean ehrContainsCompositionWithArchetypeID(String ehrUid, String archetypeId)
    {
