@@ -29,7 +29,6 @@ class Main {
          System.exit(-1)
       }
 
-
 /*
       def client = new EhrServerAsyncClient('http://', 'server001.cloudehrserver.com', 80, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
       //def client = new EhrServerAsyncClient('https://', 'server001.cloudehrserver.com', 443, '/', (ehrAmount>1000 ? ehrAmount.intdiv(100) : 10))
@@ -39,29 +38,26 @@ class Main {
       def loadehr = new LoadEhr(client)
       def start = System.currentTimeMillis()
 
-
-      loadehr.createEhrs(ehrAmount)
-      loadehr.commitBasicDemographic()
-      /*
-      loadehr.commitCodedDiagnosis(3)
-      loadehr.commitWeightControl(3)
-      loadehr.commitMedicationPresription(2)
-      */
+      //loadehr.createEhrs(ehrAmount)
+      //loadehr.commitBasicDemographic()
+      //loadehr.commitCodedDiagnosis(3)
+      //loadehr.commitWeightControl(3)
+      //loadehr.commitMedicationPresription(2)
       //loadehr.commitSignosVitales(5)
 
       // Necesitan paciente femenina, pero el commit de demographic puede tardar
       // en indexar asi que deberia ejecutarse en segunda vuelta
       // data should be indexed before committing obstetric history
-  //    sleep(120 * 1000)
+      //sleep(120 * 1000)
       //loadehr.commitObstetricHistory()
 
-      sleep(100 * 1000)
-      loadehr.commitPAPTestResults(3)
+      //sleep(100 * 1000)
+      //loadehr.commitPAPTestResults(3)
       // =========================================
 
       //loadehr.testIsFemale()
       //loadehr.testEhrContainsCompositionWithArchetypeID()
-      //loadehr.testAgeLowerThan()
+      loadehr.testAgeLowerThan()
 
       def now = System.currentTimeMillis()
       println '...'+ ((now - start) + ' ms')
